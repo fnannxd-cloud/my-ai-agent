@@ -7,14 +7,9 @@ exports.handler = async function(event, context) {
         const body = JSON.parse(event.body);
         const userMessage = body.message;
 
-        const API_KEY = process.env.OPENCODE_API_KEY; 
+        // ضع مفتاحك هنا مباشرة بين علامتي التنصيص
+        const API_KEY = "sk-X77iCCB8TAGAzSGjM2QZtaaYz8C7lsaUbKLihReskxOjpylpJOA09uHgoqxWfsvu"; 
 
-        if (!API_KEY) {
-            console.error("خطأ: المفتاح السري غير موجود");
-            return { statusCode: 500, body: JSON.stringify({ error: "API Key missing" }) };
-        }
-
-        // استخدام fetch العالمي المدمج في بيئة نتلايف Node.js
         const response = await fetch('https://api.opencode.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
