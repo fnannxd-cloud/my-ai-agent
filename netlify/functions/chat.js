@@ -8,7 +8,7 @@ exports.handler = async function(event, context) {
         const userMessage = body.message;
 
         // ضع مفتاحك هنا مباشرة بين علامتي التنصيص
-        const API_KEY = "sk-X77iCCB8TAGAzSGjM2QZtaaYz8C7lsaUbKLihReskxOjpylpJOA09uHgoqxWfsvu"; 
+        const API_KEY = "sk-12kcOvgkSQ8IotUWX2Lm2VJOfcJsYU1Eyieosa80gvRZD9bggHJeI42bUI0UeCAE"; 
 
         const response = await fetch('https://api.opencode.ai/v1/chat/completions', {
             method: 'POST',
