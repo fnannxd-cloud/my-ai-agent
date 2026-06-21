@@ -1,7 +1,4 @@
-const fetch = require('node-fetch'); // تأكد من تثبيت هذه المكتبة في package.json
-
 exports.handler = async function(event, context) {
-    // 1. التأكد من أن الطلب من نوع POST
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
@@ -10,15 +7,14 @@ exports.handler = async function(event, context) {
         const body = JSON.parse(event.body);
         const userMessage = body.message;
 
-        // 2. سحب المفتاح السري من إعدادات Netlify
         const API_KEY = process.env.OPENCODE_API_KEY; 
 
         if (!API_KEY) {
-            console.error("خطأ: المفتاح السري غير موجود في إعدادات البيئة");
-            throw new Error("API Key configuration error");
+            console.error("خطأ: المفتاح السري غير موجود");
+            return { statusCode: 500, body: JSON.stringify({ error: "API Key missing" }) };
         }
 
-        // 3. الاتصال بمزود الذكاء الاصطناعي
+        // استخدام fetch العالمي المدمج في بيئة نتلايف Node.js
         const response = await fetch('https://api.opencode.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -36,10 +32,9 @@ exports.handler = async function(event, context) {
 
         const data = await response.json();
 
-        // 4. فحص إذا كان هناك خطأ من الـ API نفسه
         if (!response.ok) {
-            console.error("خطأ من الـ API:", data);
-            throw new Error(data.error?.message || "فشل الاتصال بـ API");
+            console.error("خطأ من الـ API:", JSON.stringify(data));
+            return { statusCode: 500, body: JSON.stringify({ error: "API Error" }) };
         }
         
         return {
@@ -48,7 +43,7 @@ exports.handler = async function(event, context) {
         };
 
     } catch (error) {
-        console.error("خطأ تقني داخل الـ Function:", error.message);
+        console.error("خطأ تقني:", error);
         return {
             statusCode: 500,
             body: JSON.stringify({ error: error.message })
