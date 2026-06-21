@@ -1,5 +1,7 @@
-﻿// هذا الكود يعمل على سيرفر Netlify لتأمين المفتاح الخاص بك
+const fetch = require('node-fetch'); // تأكد من تثبيت هذه المكتبة في package.json
+
 exports.handler = async function(event, context) {
+    // 1. التأكد من أن الطلب من نوع POST
     if (event.httpMethod !== 'POST') {
         return { statusCode: 405, body: 'Method Not Allowed' };
     }
@@ -8,10 +10,15 @@ exports.handler = async function(event, context) {
         const body = JSON.parse(event.body);
         const userMessage = body.message;
 
-        // مفتاحك السري يتم سحبه من إعدادات Netlify بشكل آمن جداً
+        // 2. سحب المفتاح السري من إعدادات Netlify
         const API_KEY = process.env.OPENCODE_API_KEY; 
 
-        // الاتصال بنموذج الذكاء الاصطناعي (باستخدام معمارية متوافقة)
+        if (!API_KEY) {
+            console.error("خطأ: المفتاح السري غير موجود في إعدادات البيئة");
+            throw new Error("API Key configuration error");
+        }
+
+        // 3. الاتصال بمزود الذكاء الاصطناعي
         const response = await fetch('https://api.opencode.ai/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -19,7 +26,7 @@ exports.handler = async function(event, context) {
                 'Authorization': `Bearer ${API_KEY}`
             },
             body: JSON.stringify({
-                model: "gpt-4o-mini", // قم بتغييره حسب النموذج المتاح لك في الموقع
+                model: "gpt-4o-mini", 
                 messages: [
                     {"role": "system", "content": "أنت مهندس برمجيات محترف ووكيل ذكي تقوم ببناء الأنظمة المعقدة."},
                     {"role": "user", "content": userMessage}
@@ -28,6 +35,12 @@ exports.handler = async function(event, context) {
         });
 
         const data = await response.json();
+
+        // 4. فحص إذا كان هناك خطأ من الـ API نفسه
+        if (!response.ok) {
+            console.error("خطأ من الـ API:", data);
+            throw new Error(data.error?.message || "فشل الاتصال بـ API");
+        }
         
         return {
             statusCode: 200,
@@ -35,9 +48,10 @@ exports.handler = async function(event, context) {
         };
 
     } catch (error) {
+        console.error("خطأ تقني داخل الـ Function:", error.message);
         return {
             statusCode: 500,
-            body: JSON.stringify({ error: 'Failed to process request' })
+            body: JSON.stringify({ error: error.message })
         };
     }
 };
